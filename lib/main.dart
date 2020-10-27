@@ -10,15 +10,84 @@ import 'package:altru/screens/HomeScreen.dart';
 import 'package:altru/screens/Shirt_Selection.dart';
 import 'package:altru/screens/Atrocity_Video.dart';
 
-void main() {
-  runApp(MyApp());
+
+
+import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:altru/bloc_login/repository/user_repository.dart';
+import 'package:altru/bloc_login/bloc/authentication_bloc.dart';
+import 'package:altru/bloc_login/splash_page.dart';
+import 'package:altru/bloc_login/login/login_page.dart';
+
+import 'package:altru/bloc_login/common/loading_indicator.dart';
+
+
+
+class SimpleBlocDelegate extends BlocDelegate {
+  @override
+  void onEvent(Bloc bloc, Object event) {
+    super.onEvent(bloc, event);
+    print(event);
+  }
+
+  @override
+  void onTransition(Bloc bloc, Transition transition) {
+    super.onTransition(bloc, transition);
+    print(transition);
+  }
+
+  @override
+  void onError(Bloc bloc, Object error, StackTrace stacktrace) {
+    super.onError(bloc, error, stacktrace);
+  }
 }
 
+
+
+
+
+void main() {
+  BlocSupervisor.delegate = SimpleBlocDelegate();
+  final userRepository = UserRepository();
+
+  runApp(BlocProvider<AuthenticationBloc>(
+    create: (context) {
+      return AuthenticationBloc(userRepository: userRepository)
+        ..add(AppStarted());
+    },
+    child: MyApp(userRepository: userRepository),
+  ));
+}
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  final UserRepository userRepository;
+
+  MyApp({Key key, @required this.userRepository}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+        brightness: Brightness.dark,
+      ),
+      home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+        builder: (context, state) {
+          if (state is AuthenticationUnintialized) {
+            return SplashPage();
+          }
+          if (state is AuthenticationAuthenticated) {
+            return UserHomePage();
+          }
+          if (state is AuthenticationUnauthenticated) {
+            return LoginPage(
+              userRepository: userRepository,
+            );
+          }
+          if (state is AuthenticationLoading) {
+            return LoadingIndicator();
+          }
+        },
+      ),
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       initialRoute: UserHomePage.id,
@@ -27,29 +96,7 @@ class MyApp extends StatelessWidget {
         myQRHome.id:(context)=>myQRHome(),
         ShirtSelection.id:(context)=>ShirtSelection(),
         NonProfitScreen.id:(context)=>NonProfitScreen(),
-
-
-
       },
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home:SignUp(),
     );
   }
 }
-
-

@@ -12,6 +12,9 @@ import 'package:altru/Widgets/Cicular_Clipper.dart';
 import 'package:altru/Widgets/Content_Scroll.dart';
 import 'dart:convert';
 import 'package:altru/screens/NonProfit_Screen2.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:altru/bloc_login/bloc/authentication_bloc.dart';
 
 class UserHomePage extends StatefulWidget {
   @override
@@ -166,7 +169,16 @@ class _UserHomePageState extends State<UserHomePage> {
                   });
                 },
               ),
-            )
+            ),
+            Card(color: Colors.white,
+            child: ListTile(
+              leading: Icon(Icons.close, color: Colors.amber),
+              title: Text('Sign Out Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),onTap: () {
+              BlocProvider.of<AuthenticationBloc>(context)
+                  .add(LoggedOut());
+            },
+            ),)
           ],
         ),
       ),
